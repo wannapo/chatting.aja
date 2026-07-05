@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>chatting.aja — Chat cepat, privasi rapat</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    :root{--bg:#0a0a10;--red:#a855f7;--red2:#d946ef;--surface:#111116;--surface2:#17171f;--border:#2a2a35;--text:#f5f5f7;--muted:#7c7c8a;--accent:#d8b4fe;--green:#22c55e;--mono:'JetBrains Mono',monospace}
+    html{scroll-behavior:smooth}body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden;background-image:linear-gradient(rgba(255,255,255,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.025) 1px,transparent 1px);background-size:32px 32px}
+    nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;padding:18px 60px;border-bottom:1px solid #ffffff08;background:#0a0a10dd;backdrop-filter:blur(16px)}
+    .nav-logo{font-family:'Inter',sans-serif;font-weight:800;font-size:18px;color:var(--text);display:flex;align-items:center;gap:8px;text-decoration:none}
+    .nav-logo-dot{width:8px;height:8px;background:var(--red2);border-radius:50%;animation:pulse 2s infinite}
+    .nav-links{display:flex;gap:32px;margin:0 auto;list-style:none}
+    .nav-links a{font-size:14px;color:var(--muted);text-decoration:none;transition:color 0.2s}
+    .nav-links a:hover{color:var(--text)}
+    .nav-cta{padding:8px 20px;border-radius:8px;background:var(--text);color:var(--bg);font-family:'Inter',sans-serif;font-weight:700;font-size:13px;text-decoration:none}
+    .hero{min-height:100vh;display:grid;grid-template-columns:1fr 1fr;align-items:center;padding:100px 60px 60px;position:relative;overflow:hidden;gap:60px}
+    .hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 0% 50%,#a855f722,transparent 55%),radial-gradient(ellipse at 100% 80%,#d946ef15,transparent 50%);pointer-events:none}
+    .hero-badge{display:inline-flex;align-items:center;gap:6px;background:#ffffff0a;border:1px solid var(--border);border-radius:20px;padding:5px 12px 5px 8px;font-size:12px;color:var(--muted);margin-bottom:24px;width:fit-content}
+    .badge-dot{width:6px;height:6px;background:var(--green);border-radius:50%}
+    .hero-title{font-family:'Inter',sans-serif;font-weight:800;font-size:clamp(42px,5vw,72px);line-height:1.05;letter-spacing:-2px;margin-bottom:20px}
+    .hero-title em{font-family:'Inter',sans-serif;font-style:italic;color:var(--accent);font-weight:400}
+    .hero-desc{font-size:15px;color:var(--muted);line-height:1.7;max-width:420px;margin-bottom:36px}
+    .hero-btns{display:flex;gap:12px;flex-wrap:wrap}
+    .btn-primary{padding:13px 28px;border-radius:10px;background:var(--text);color:var(--bg);font-family:'Inter',sans-serif;font-weight:700;font-size:14px;border:none;cursor:pointer;text-decoration:none;transition:transform 0.15s;display:inline-block}
+    .btn-primary:hover{transform:translateY(-2px)}
+    .btn-ghost{padding:13px 28px;border-radius:10px;background:transparent;color:var(--text);font-family:'Inter',sans-serif;font-weight:600;font-size:14px;border:1px solid var(--border);cursor:pointer;text-decoration:none;display:inline-block}
+    .chat-widget{background:#111116;border:1px solid var(--border);border-radius:20px;overflow:hidden;box-shadow:0 32px 80px #00000080}
+    .widget-header{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;background:#0a0a10}
+    .widget-avatar{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#a855f7,#d946ef);display:flex;align-items:center;justify-content:center;font-family:'Inter',sans-serif;font-weight:700;font-size:13px}
+    .widget-name{font-family:'Inter',sans-serif;font-weight:600;font-size:13px}
+    .widget-status{font-size:11px;color:var(--green);display:flex;align-items:center;gap:4px}
+    .status-dot{width:5px;height:5px;background:var(--green);border-radius:50%;animation:pulse 2s infinite}
+    .widget-msgs{padding:18px;display:flex;flex-direction:column;gap:10px;min-height:180px}
+    .wmsg{display:flex;flex-direction:column;gap:3px}.wmsg.sent{align-items:flex-end}.wmsg.recv{align-items:flex-start}
+    .wbubble{padding:9px 14px;border-radius:14px;font-size:13px;line-height:1.5;max-width:80%;word-break:break-word}
+    .wmsg.recv .wbubble{background:var(--surface2);border:1px solid var(--border)}
+    .wmsg.sent .wbubble{background:#2a1f3d;border:1px solid #a855f755;color:#f0d9ff}
+    .wtime{font-size:10px;color:var(--muted);padding:0 4px}
+    .widget-input{padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:10px;align-items:center}
+    .widget-input-field{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:8px 12px;color:var(--muted);font-size:13px}
+    .widget-send{width:34px;height:34px;border-radius:9px;background:var(--red);border:none;cursor:pointer;font-size:13px}
+    .stats-bar{padding:24px 60px;border-top:1px solid var(--border);border-bottom:1px solid var(--border);display:flex;gap:60px;background:var(--surface);flex-wrap:wrap}
+    .stat{display:flex;flex-direction:column;gap:2px}
+    .stat-num{font-family:'Inter',sans-serif;font-weight:800;font-size:28px}
+    .stat-label{font-size:12px;color:var(--muted)}
+    .section{padding:100px 60px}
+    .section-label{font-size:11px;color:var(--red2);letter-spacing:2px;text-transform:uppercase;font-weight:600;margin-bottom:14px}
+    .section-title{font-family:'Inter',sans-serif;font-weight:800;font-size:clamp(30px,4vw,48px);letter-spacing:-1.5px;line-height:1.1;margin-bottom:16px}
+    .section-sub{font-size:15px;color:var(--muted);max-width:500px;line-height:1.7;margin-bottom:60px}
+    .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:2px}
+    .step{background:var(--surface);padding:36px 32px;position:relative;overflow:hidden;transition:background 0.2s}
+    .step:first-child{border-radius:20px 0 0 20px}.step:last-child{border-radius:0 20px 20px 0}
+    .step:hover{background:var(--surface2)}
+    .step-num{font-family:'Inter',sans-serif;font-size:72px;color:#ffffff06;position:absolute;top:10px;right:20px}
+    .step-icon{width:44px;height:44px;border-radius:12px;background:#a855f718;border:1px solid #a855f733;display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:20px}
+    .step-title{font-family:'Inter',sans-serif;font-weight:700;font-size:17px;margin-bottom:10px}
+    .step-desc{font-size:13px;color:var(--muted);line-height:1.65}
+    .features-grid{display:grid;grid-template-columns:1fr 1fr;gap:2px}
+    .feature-card{background:var(--surface);padding:40px;transition:background 0.2s}
+    .feature-card:hover{background:var(--surface2)}
+    .feature-card:nth-child(1){border-radius:20px 0 0 0}.feature-card:nth-child(2){border-radius:0 20px 0 0}
+    .feature-card:nth-child(3){border-radius:0 0 0 20px}.feature-card:nth-child(4){border-radius:0 0 20px 0}
+    .feature-icon{font-size:28px;margin-bottom:16px}
+    .feature-title{font-family:'Inter',sans-serif;font-weight:700;font-size:17px;margin-bottom:10px}
+    .feature-desc{font-size:13px;color:var(--muted);line-height:1.65}
+    .uid-section{padding:100px 60px;background:var(--surface);display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center}
+    .uid-demo{background:var(--bg);border:1px solid var(--border);border-radius:20px;padding:32px;min-width:0;overflow:hidden}
+    .uid-val{font-family:'Inter',sans-serif;font-weight:700;font-size:20px;color:var(--accent);word-break:break-all}
+    .uid-display{display:flex;align-items:center;gap:14px;padding:16px 18px;background:#a855f710;border:1px dashed #a855f744;border-radius:12px;margin-bottom:20px;flex-wrap:wrap;overflow:hidden}
+    .uid-avatar{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,#a855f7,#d946ef);display:flex;align-items:center;justify-content:center;font-family:'Inter',sans-serif;font-weight:700;flex-shrink:0}
+    .uid-copy{padding:9px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-family:'Inter',sans-serif;font-weight:600;font-size:12px;color:var(--muted);cursor:pointer;margin-left:auto}
+    .uid-search{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+    .uid-search input{flex:1;min-width:0;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 14px;color:var(--text);font-family:'Inter',sans-serif;font-size:14px;font-weight:600;outline:none}
+    .uid-search-btn{padding:10px 16px;border-radius:10px;background:var(--red);border:none;color:white;font-family:'Inter',sans-serif;font-weight:700;font-size:13px;cursor:pointer}
+    .uid-result{padding:14px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+    .uid-add-btn{padding:7px 14px;border-radius:8px;background:var(--red);border:none;color:white;font-family:'Inter',sans-serif;font-weight:700;font-size:12px;cursor:pointer}
+    .privacy-section{padding:100px 60px;display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center}
+    .privacy-list{display:flex;flex-direction:column;gap:16px;margin-top:36px}
+    .privacy-item{display:flex;align-items:flex-start;gap:14px;padding:16px;background:var(--surface);border-radius:12px;border:1px solid var(--border);transition:border-color 0.2s}
+    .privacy-item:hover{border-color:var(--red2)}
+    .privacy-icon{width:36px;height:36px;border-radius:10px;background:#a855f718;border:1px solid #a855f733;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+    .privacy-item-title{font-family:'Inter',sans-serif;font-weight:600;font-size:14px;margin-bottom:3px}
+    .privacy-item-desc{font-size:12px;color:var(--muted);line-height:1.6}
+    .privacy-visual{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:32px;display:flex;flex-direction:column;gap:14px}
+    .pv-row{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--bg);border-radius:10px;border:1px solid var(--border);flex-wrap:wrap;gap:6px}
+    .pv-label{font-size:13px;color:var(--muted)}
+    .pv-val{font-family:'Inter',sans-serif;font-weight:600;font-size:13px}
+    .pv-val.yes{color:var(--green)}.pv-val.no{color:#ff6b6b}.pv-val.uid{color:var(--accent)}
+    .cta-section{padding:100px 60px;text-align:center;position:relative;overflow:hidden}
+    .cta-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 50%,#a855f718,transparent 60%);pointer-events:none}
+    .cta-btns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+    footer{padding:40px 60px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px}
+    .footer-logo{font-family:'Inter',sans-serif;font-weight:800;font-size:16px}
+    .footer-links{display:flex;gap:28px;list-style:none;flex-wrap:wrap}
+    .footer-links a{font-size:13px;color:var(--muted);text-decoration:none}
+    .footer-copy{font-size:12px;color:var(--muted)}
+    .divider{height:1px;background:var(--border);margin:0 60px}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+    .hero-content>*{animation:fadeUp 0.6s ease both}
+    .hero-content>*:nth-child(1){animation-delay:0.1s}.hero-content>*:nth-child(2){animation-delay:0.2s}
+    .hero-content>*:nth-child(3){animation-delay:0.3s}.hero-content>*:nth-child(4){animation-delay:0.4s}
+    .hero-visual{animation:fadeUp 0.7s 0.3s ease both}
+    .hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;padding:4px;margin-left:auto;background:none;border:none}
+    .hamburger span{display:block;width:22px;height:2px;background:var(--text);border-radius:2px;transition:all 0.3s}
+    .hamburger.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+    .hamburger.open span:nth-child(2){opacity:0}
+    .hamburger.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+    .mobile-menu{display:none;position:fixed;top:61px;left:0;right:0;background:#0a0a10f5;backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:20px 24px;flex-direction:column;gap:16px;z-index:99}
+    .mobile-menu.open{display:flex}
+    .mobile-menu a{font-size:15px;color:var(--muted);text-decoration:none;font-family:'Inter',sans-serif;font-weight:600;padding:8px 0;border-bottom:1px solid var(--border)}
+    .mobile-menu a:last-child{border-bottom:none}
+    .mobile-menu .nav-cta{text-align:center;padding:12px;border-radius:10px;margin-top:4px;border-bottom:none}
+    html,body{max-width:100%;overflow-x:hidden}
+    .hero-content,.hero-visual,.uid-section>div,.privacy-section>div,.privacy-visual,.uid-demo,.chat-widget,.step,.feature-card{min-width:0;max-width:100%}
+    .uid-display{flex-wrap:wrap;overflow:hidden}.uid-val,.uid-sub{word-break:break-all}.uid-demo{overflow:hidden}
+    .wbubble{word-break:break-word}.section-title,.hero-title,.hero-desc,.section-sub,.step-desc,.feature-desc,.privacy-item-desc{word-break:break-word}
+    @media(max-width:1024px){nav{padding:18px 32px}.hero{padding:100px 32px 60px;gap:40px}.section{padding:80px 32px}.stats-bar{padding:24px 32px;gap:32px}.uid-section{padding:80px 32px;gap:48px}.privacy-section{padding:80px 32px;gap:48px}.cta-section{padding:80px 32px}footer{padding:32px}.divider{margin:0 32px}}
+    @media(max-width:768px){nav{padding:16px 20px}.nav-links{display:none}.nav-cta{display:none}.hamburger{display:flex}.hero{grid-template-columns:1fr;min-height:auto;padding:90px 20px 48px;gap:40px}.hero-title{font-size:clamp(36px,10vw,52px);letter-spacing:-1.5px}.hero-desc{font-size:14px;max-width:100%}.hero-btns{flex-direction:column}.btn-primary,.btn-ghost{text-align:center;padding:14px 24px}.hero-visual{order:-1}.stats-bar{padding:20px;gap:0;display:grid;grid-template-columns:1fr 1fr}.stat{padding:16px;border-right:1px solid var(--border);border-bottom:1px solid var(--border)}.stat:nth-child(2n){border-right:none}.stat:nth-child(3),.stat:nth-child(4){border-bottom:none}.stat-num{font-size:22px}.section{padding:60px 20px}.section-title{font-size:clamp(26px,7vw,38px);letter-spacing:-1px}.section-sub{font-size:14px;margin-bottom:36px}.steps{grid-template-columns:1fr;gap:2px}.step:first-child{border-radius:20px 20px 0 0}.step:last-child{border-radius:0 0 20px 20px}.features-grid{grid-template-columns:1fr;gap:2px}.feature-card:nth-child(1){border-radius:20px 20px 0 0}.feature-card:nth-child(2){border-radius:0}.feature-card:nth-child(3){border-radius:0}.feature-card:nth-child(4){border-radius:0 0 20px 20px}.feature-card{padding:28px 24px}.uid-section{grid-template-columns:1fr;padding:60px 20px;gap:36px}.uid-demo{padding:20px 16px}.privacy-section{grid-template-columns:1fr;padding:60px 20px;gap:36px}.privacy-visual{padding:20px 16px}.cta-section{padding:60px 20px}.cta-btns{flex-direction:column;align-items:center}footer{flex-direction:column;gap:20px;padding:28px 20px;text-align:center}.footer-links{flex-wrap:wrap;justify-content:center;gap:16px}.divider{margin:0 20px}.section-title br{display:none}}
+    @media(max-width:400px){.hero-title{font-size:32px}}
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="#" class="nav-logo"><div class="nav-logo-dot"></div>chatting.aja</a>
+    <ul class="nav-links">
+      <li><a href="#cara-kerja">Cara Kerja</a></li>
+      <li><a href="#fitur">Fitur</a></li>
+      <li><a href="#privasi">Privasi</a></li>
+    </ul>
+    <a href="/login" class="nav-cta" id="nav-cta">Mulai Gratis →</a>
+    <button class="hamburger" id="hamburger" onclick="toggleMenu()"><span></span><span></span><span></span></button>
+  </nav>
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="#cara-kerja" onclick="closeMenu()">Cara Kerja</a>
+    <a href="#fitur" onclick="closeMenu()">Fitur</a>
+    <a href="#privasi" onclick="closeMenu()">Privasi</a>
+    <a href="/login" class="nav-cta" onclick="closeMenu()">Mulai Gratis →</a>
+    <a href="/register" onclick="closeMenu()" style="display:block;text-align:center;padding:12px 20px;background:var(--text);color:var(--bg);font-family:'Inter',sans-serif;font-weight:700;font-size:14px;border-radius:10px;text-decoration:none;margin-top:4px;border-bottom:none">Daftar Sekarang</a>
+  </div>
+
+  <section class="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-content">
+      <div class="hero-badge"><div class="badge-dot"></div><span id="hero-badge">MVP V1.0 — Sekarang tersedia</span></div>
+      <h1 class="hero-title" id="hero-title">Chat cepat,<br><em id="hero-title-italic">privasi rapat,<br>tanpa ribet.</em></h1>
+      <p class="hero-desc" id="hero-desc">Temukan teman lewat Unique User Tag, bukan nomor telepon atau email.</p>
+      <div class="hero-btns">
+        <a href="/login" class="btn-primary" id="hero-btn-primary">Mulai Chat</a>
+        <a href="#cara-kerja" class="btn-ghost" id="hero-btn-secondary">Lihat Demo</a>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="chat-widget">
+        <div class="widget-header">
+          <div class="widget-avatar">R</div>
+          <div><div class="widget-name">Raka</div><div class="widget-status"><div class="status-dot"></div> online</div></div>
+          <div style="font-size:11px;color:var(--muted);margin-left:auto">RAKA#1074</div>
+        </div>
+        <div class="widget-msgs">
+          <div class="wmsg recv"><div class="wbubble">Tag gue aman, kan?</div><div class="wtime">12:30</div></div>
+          <div class="wmsg sent"><div class="wbubble">Aman. Cukup share Unique Tag aja.</div><div class="wtime">12:31</div></div>
+          <div class="wmsg recv"><div class="wbubble">Gas, kirim sekarang. 🔥</div><div class="wtime">12:32</div></div>
+          <div class="wmsg sent"><div class="wbubble">Siap, udah terkirim!</div><div class="wtime">12:33</div></div>
+        </div>
+        <div class="widget-input"><div class="widget-input-field">Ketik pesan...</div><button class="widget-send">➤</button></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="stats-bar" id="stats-bar">
+    <div class="stat"><div class="stat-num">0ms</div><div class="stat-label">Latensi rata-rata</div></div>
+    <div class="stat"><div class="stat-num">100%</div><div class="stat-label">Tanpa nomor telepon</div></div>
+    <div class="stat"><div class="stat-num">Gratis</div><div class="stat-label">Selamanya untuk pengguna</div></div>
+    <div class="stat"><div class="stat-num">1 Tag</div><div class="stat-label">Cukup untuk ditemukan</div></div>
+  </div>
+
+  <section class="section" id="cara-kerja">
+    <div class="section-label">Cara Kerja</div>
+    <h2 class="section-title">Tiga langkah,<br>udah bisa chat.</h2>
+    <p class="section-sub">Daftar dalam hitungan detik, dapat Unique Tag, langsung chat.</p>
+    <div class="steps" id="steps-container">
+      <div class="step"><div class="step-num">01</div><div class="step-icon">✉️</div><div class="step-title">Daftar pakai email</div><div class="step-desc">Cukup email dan password. Tidak perlu nomor telepon.</div></div>
+      <div class="step"><div class="step-num">02</div><div class="step-icon">🏷️</div><div class="step-title">Dapat Unique Tag otomatis</div><div class="step-desc">Sistem langsung generate tag unik buat identitas kamu.</div></div>
+      <div class="step"><div class="step-num">03</div><div class="step-icon">💬</div><div class="step-title">Cari & mulai chat</div><div class="step-desc">Masukkan Unique Tag teman, add, dan langsung chat.</div></div>
+    </div>
+  </section>
+  <div class="divider"></div>
+
+  <section class="uid-section">
+    <div>
+      <div class="section-label">Unique Tag System</div>
+      <h2 class="section-title" id="uid-title">Satu tag,<br>cukup buat<br><em style="font-family:'Inter',sans-serif;font-style:italic;color:var(--accent);font-weight:400" id="uid-title-italic">ditemukan.</em></h2>
+      <p class="section-sub" style="margin-bottom:0" id="uid-desc">Tidak perlu kasih nomor HP atau email ke orang yang baru kenal.</p>
+    </div>
+    <div class="uid-demo">
+      <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--muted);margin-bottom:12px">TAG KAMU</div>
+      <div class="uid-display"><div class="uid-avatar">K</div><div><div class="uid-val">kamu#4291</div><div class="uid-sub" style="font-size:12px;color:var(--muted)">Unique Tag — tidak bisa digandakan</div></div><button class="uid-copy">Salin</button></div>
+      <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--muted);margin-bottom:10px;margin-top:16px">CARI TEMAN</div>
+      <div class="uid-search"><input type="text" placeholder="budi#3921" value="budi#3921"/><button class="uid-search-btn">Cari</button></div>
+      <div class="uid-result"><div class="uid-avatar" style="width:38px;height:38px;font-size:13px">B</div><div><div style="font-family:'Inter',sans-serif;font-weight:600;font-size:14px">budi_asli</div><div style="font-size:12px;color:var(--red2)">budi#3921</div></div><button class="uid-add-btn" style="margin-left:auto">+ Tambah</button></div>
+    </div>
+  </section>
+
+  <section class="section" id="fitur">
+    <div class="section-label">Fitur</div>
+    <h2 class="section-title">Semua yang kamu<br>butuhkan, tidak lebih.</h2>
+    <p class="section-sub">Fokus ke hal yang penting — ngobrol.</p>
+    <div class="features-grid" id="features-container">
+      <div class="feature-card"><div class="feature-icon">⚡</div><div class="feature-title">Real-time tanpa delay</div><div class="feature-desc">Pesan terkirim dan diterima secara instan lewat WebSocket.</div></div>
+      <div class="feature-card"><div class="feature-icon">🟢</div><div class="feature-title">Status online & last seen</div><div class="feature-desc">Tau kapan teman kamu online atau terakhir aktif.</div></div>
+      <div class="feature-card"><div class="feature-icon">✓✓</div><div class="feature-title">Read receipt</div><div class="feature-desc">Tanda centang dua yang berubah warna saat pesan dibaca.</div></div>
+      <div class="feature-card"><div class="feature-icon">🔍</div><div class="feature-title">Cari percakapan</div><div class="feature-desc">Cari pesan atau kontak dengan cepat.</div></div>
+    </div>
+  </section>
+  <div class="divider"></div>
+
+  <section class="privacy-section" id="privasi">
+    <div>
+      <div class="section-label">Privasi</div>
+      <h2 class="section-title" id="privacy-title">Privasi bukan<br>fitur tambahan.</h2>
+      <p class="section-sub" style="margin-bottom:0" id="privacy-desc">Di sini, privasi adalah default.</p>
+      <div class="privacy-list">
+        <div class="privacy-item"><div class="privacy-icon">🏷️</div><div><div class="privacy-item-title">Cukup bagikan Tag, bukan nomor</div><div class="privacy-item-desc">Orang lain hanya tahu Unique Tag lo, bukan email atau nomor HP.</div></div></div>
+        <div class="privacy-item"><div class="privacy-icon">🚫</div><div><div class="privacy-item-title">Tanpa iklan & tracking</div><div class="privacy-item-desc">Data percakapan lo tidak dijual ke pengiklan.</div></div></div>
+        <div class="privacy-item"><div class="privacy-icon">🔐</div><div><div class="privacy-item-title">Autentikasi aman</div><div class="privacy-item-desc">Login pakai email + password yang dienkripsi.</div></div></div>
+      </div>
+    </div>
+    <div class="privacy-visual">
+      <div style="font-family:'Inter',sans-serif;font-weight:700;font-size:14px;margin-bottom:8px">Perbandingan privasi</div>
+      <div class="pv-row"><div class="pv-label">Nomor telepon diperlukan</div><div class="pv-val no">✗ Tidak</div></div>
+      <div class="pv-row"><div class="pv-label">Email dibagikan ke orang lain</div><div class="pv-val no">✗ Tidak</div></div>
+      <div class="pv-row"><div class="pv-label">Iklan di dalam app</div><div class="pv-val no">✗ Tidak</div></div>
+      <div class="pv-row"><div class="pv-label">Identitas lewat Unique Tag</div><div class="pv-val yes">✓ Ya</div></div>
+      <div class="pv-row"><div class="pv-label">Chat real-time</div><div class="pv-val yes">✓ Ya</div></div>
+    </div>
+  </section>
+
+  <section class="cta-section">
+    <div class="cta-bg"></div>
+    <div class="section-label" style="position:relative">Ayo mulai</div>
+    <h2 class="section-title" style="position:relative" id="cta-title">Udah siap chat<br><em style="font-family:'Inter',sans-serif;font-style:italic;color:var(--accent);font-weight:400" id="cta-title-italic">tanpa ribet?</em></h2>
+    <p class="section-sub" style="position:relative;margin:0 auto 40px" id="cta-desc">Daftar gratis, dapat Unique Tag, langsung chat.</p>
+    <div class="cta-btns" style="position:relative">
+      <a href="/register" class="btn-primary" id="cta-btn-primary">Buat Akun Sekarang →</a>
+      <a href="#cara-kerja" class="btn-ghost" id="cta-btn-secondary">Pelajari lebih lanjut</a>
+    </div>
+  </section>
+
+  <footer>
+    <div class="footer-logo">chatting.aja</div>
+    <ul class="footer-links"><li><a href="#">Tentang</a></li><li><a href="#">Privasi</a></li><li><a href="#">Syarat</a></li><li><a href="#">Kontak</a></li></ul>
+    <div class="footer-copy">© 2025 chatting.aja</div>
+  </footer>
+
+  <script>
+    function toggleMenu(){document.getElementById('mobileMenu').classList.toggle('open');document.getElementById('hamburger').classList.toggle('open')}
+    function closeMenu(){document.getElementById('mobileMenu').classList.remove('open');document.getElementById('hamburger').classList.remove('open')}
+
+    async function loadContent() {
+      try {
+        const res = await fetch('/api/landing')
+        if (!res.ok) return
+        const c = await res.json()
+
+        if (c.hero) {
+          if (c.hero.badge) document.getElementById('hero-badge').textContent = c.hero.badge
+          if (c.hero.title) document.getElementById('hero-title').childNodes[0].textContent = c.hero.title + '\n'
+          if (c.hero.titleItalic) document.getElementById('hero-title-italic').innerHTML = c.hero.titleItalic.replace(/\n/g,'<br>')
+          if (c.hero.description) document.getElementById('hero-desc').textContent = c.hero.description
+          if (c.hero.btnPrimary) document.getElementById('hero-btn-primary').textContent = c.hero.btnPrimary
+          if (c.hero.btnSecondary) document.getElementById('hero-btn-secondary').textContent = c.hero.btnSecondary
+        }
+        if (c.stats && c.stats.length) {
+          document.getElementById('stats-bar').innerHTML = c.stats.map(s =>
+            `<div class="stat"><div class="stat-num">${s.value}</div><div class="stat-label">${s.label}</div></div>`
+          ).join('')
+        }
+        if (c.steps && c.steps.length) {
+          const radii = ['20px 0 0 20px','','0 20px 20px 0']
+          document.getElementById('steps-container').innerHTML = c.steps.map((s,i) =>
+            `<div class="step" style="border-radius:${radii[Math.min(i,2)]||''}"><div class="step-num">0${i+1}</div><div class="step-icon">${s.icon}</div><div class="step-title">${s.title}</div><div class="step-desc">${s.description}</div></div>`
+          ).join('')
+        }
+        if (c.features && c.features.length) {
+          const r=['20px 0 0 0','0 20px 0 0','0 0 0 20px','0 0 20px 0']
+          document.getElementById('features-container').innerHTML = c.features.map((f,i) =>
+            `<div class="feature-card" style="border-radius:${r[i]||'0'}"><div class="feature-icon">${f.icon}</div><div class="feature-title">${f.title}</div><div class="feature-desc">${f.description}</div></div>`
+          ).join('')
+        }
+        if (c.uid) {
+          if (c.uid.titleItalic) document.getElementById('uid-title-italic').textContent = c.uid.titleItalic
+          if (c.uid.description) document.getElementById('uid-desc').textContent = c.uid.description
+        }
+        if (c.privacy) {
+          if (c.privacy.title) document.getElementById('privacy-title').innerHTML = c.privacy.title.replace(/\n/g,'<br>')
+          if (c.privacy.description) document.getElementById('privacy-desc').textContent = c.privacy.description
+        }
+        if (c.cta) {
+          if (c.cta.title) document.getElementById('cta-title').childNodes[0].textContent = c.cta.title + ' '
+          if (c.cta.titleItalic) document.getElementById('cta-title-italic').textContent = c.cta.titleItalic
+          if (c.cta.description) document.getElementById('cta-desc').textContent = c.cta.description
+          if (c.cta.btnPrimary) document.getElementById('cta-btn-primary').textContent = c.cta.btnPrimary
+          if (c.cta.btnSecondary) document.getElementById('cta-btn-secondary').textContent = c.cta.btnSecondary
+        }
+      } catch(e) { console.warn('Could not load dynamic content:', e) }
+    }
+
+    loadContent()
+  </script>
+</body>
+</html>
