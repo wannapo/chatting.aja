@@ -1,8 +1,8 @@
 "use client";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
-import { Search, Settings, X, Copy, Check } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Search, Settings, X, Copy, Check, Hash } from "lucide-react";
 import Avatar from "@/components/ui/Avatar";
 import { createClient } from "@/lib/supabase/client";
 import { useConversations } from "@/lib/hooks/useConversations";
@@ -21,6 +21,10 @@ export default function SidebarClient({ profile, onClose }: Props) {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"all"|"online"|"unread">("all");
   const [copied, setCopied] = useState(false);
+  const [remoteResult, setRemoteResult] = useState<Profile | null | "not-found">(null);
+  const [remoteSearching, setRemoteSearching] = useState(false);
+  const [starting, setStarting] = useState(false);
+  const [startError, setStartError] = useState<string | null>(null);
   const supabase = createClient();
   const { conversations, loading } = useConversations(profile?.id || "");
   useOnlineStatus(profile?.id);
@@ -34,6 +38,51 @@ export default function SidebarClient({ profile, onClose }: Props) {
     if (filter === "unread") return conv.unread > 0;
     return true;
   });
+
+  // Kalau gak ketemu di percakapan yang ada, coba cari user baru lewat tag (mis. "budi#1234")
+  useEffect(() => {
+    const q = search.trim();
+    if (!q || filtered.length > 0) { setRemoteResult(null); return; }
+
+    const timer = setTimeout(async () => {
+      setRemoteSearching(true);
+      const { data } = await supabase.rpc("find_user_by_tag", { tag: q });
+      if (data && data.length > 0 && data[0].id !== profile?.id) {
+        setRemoteResult(data[0] as Profile);
+      } else {
+        setRemoteResult("not-found");
+      }
+      setRemoteSearching(false);
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [search, filtered.length, profile?.id]);
+
+  async function handleStartChat(otherUser: Profile) {
+    setStarting(true);
+    setStartError(null);
+    try {
+      const { data: convId, error } = await supabase
+        .rpc("get_or_create_conversation", { other_user_id: otherUser.id });
+      if (error) {
+        console.error("get_or_create_conversation error:", error);
+        setStartError(error.message || "Gagal memulai chat.");
+        return;
+      }
+      if (convId) {
+        setSearch("");
+        onClose?.();
+        router.push(`/chat/${convId}`);
+      } else {
+        setStartError("Server tidak mengembalikan ID percakapan.");
+      }
+    } catch (err) {
+      console.error("handleStartChat exception:", err);
+      setStartError(err instanceof Error ? err.message : "Terjadi kesalahan tak terduga.");
+    } finally {
+      setStarting(false);
+    }
+  }
 
   function copyTag() {
     if (!profile) return;
@@ -71,7 +120,7 @@ export default function SidebarClient({ profile, onClose }: Props) {
         <div style={{ display: "flex", alignItems: "center", gap: "8px", background: "#17171f", border: "1px solid #2a2a35", borderRadius: "12px", padding: "8px 12px" }}>
           <Search size={13} color="#7c7c8a" />
           <input
-            placeholder="Scan Unique Tags / Channels"
+            placeholder="Cari chat atau Unique Tag (mis. budi#1234)"
             value={search}
             onChange={e => setSearch(e.target.value)}
             style={{ flex: 1, background: "none", border: "none", outline: "none", color: "#f5f5f7", fontSize: "13px", fontFamily: "inherit" }}
@@ -103,13 +152,47 @@ export default function SidebarClient({ profile, onClose }: Props) {
         {loading ? (
           <div style={{ padding: "20px", textAlign: "center", fontSize: "13px", color: "#7c7c8a" }}>Memuat...</div>
         ) : filtered.length === 0 ? (
-          <div style={{ padding: "24px 16px", textAlign: "center" }}>
-            <div style={{ fontSize: "24px", marginBottom: "8px" }}>💬</div>
-            <div style={{ fontSize: "13px", color: "#7c7c8a" }}>{search ? "Tidak ditemukan" : "Belum ada percakapan"}</div>
-            {!search && (
-              <Link href="/find" onClick={onClose} style={{ display: "inline-block", marginTop: "10px", fontSize: "12px", color: "#a855f7", textDecoration: "none" }}>
-                + Cari pengguna
-              </Link>
+          <div style={{ padding: "16px" }}>
+            {!search ? (
+              <div style={{ textAlign: "center", padding: "8px 0" }}>
+                <div style={{ fontSize: "24px", marginBottom: "8px" }}>💬</div>
+                <div style={{ fontSize: "13px", color: "#7c7c8a" }}>Belum ada percakapan</div>
+                <Link href="/find" onClick={onClose} style={{ display: "inline-block", marginTop: "10px", fontSize: "12px", color: "#a855f7", textDecoration: "none" }}>
+                  + Cari pengguna
+                </Link>
+              </div>
+            ) : remoteSearching ? (
+              <div style={{ textAlign: "center", padding: "16px 0", fontSize: "13px", color: "#7c7c8a" }}>Mencari...</div>
+            ) : remoteResult && remoteResult !== "not-found" ? (
+              <div style={{ background: "#17171f", border: "1px solid rgba(168,85,247,0.35)", borderRadius: "14px", padding: "12px" }}>
+                <div className="mono" style={{ fontSize: "10px", color: "#55555f", letterSpacing: "0.5px", marginBottom: "10px", display: "flex", alignItems: "center", gap: "5px" }}>
+                  <Hash size={11} /> NODE_FOUND
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "10px" }}>
+                  <Avatar letter={getInitial(remoteResult.username)} colorClass={remoteResult.avatar_color} size="md" online={isOnline(remoteResult.last_seen)} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: 600, fontSize: "13px", color: "#f5f5f7" }}>{remoteResult.username}</div>
+                    <div style={{ fontSize: "12px", color: "#a855f7" }}>{remoteResult.unique_tag}</div>
+                  </div>
+                </div>
+                <button onClick={() => handleStartChat(remoteResult)} disabled={starting} style={{
+                  width: "100%", padding: "9px", borderRadius: "10px", border: "none", cursor: "pointer",
+                  background: "linear-gradient(135deg,#a855f7,#d946ef)", color: "white", fontWeight: 600, fontSize: "12px", fontFamily: "inherit",
+                  opacity: starting ? 0.7 : 1,
+                }}>
+                  {starting ? "Menghubungkan..." : "Mulai Chat"}
+                </button>
+                {startError && (
+                  <div style={{ marginTop: "8px", fontSize: "11px", color: "#ff5c5c", background: "rgba(255,92,92,0.08)", border: "1px solid rgba(255,92,92,0.3)", borderRadius: "8px", padding: "8px 10px" }}>
+                    {startError}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div style={{ textAlign: "center", padding: "16px 0" }}>
+                <div style={{ fontSize: "13px", color: "#7c7c8a" }}>Tidak ditemukan</div>
+                <div style={{ fontSize: "11px", color: "#55555f", marginTop: "4px" }}>Pastikan Unique Tag lengkap, mis. budi#1234</div>
+              </div>
             )}
           </div>
         ) : filtered.map(conv => {

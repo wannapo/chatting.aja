@@ -98,7 +98,7 @@ export default function MobileShell({ sidebar, children, nodeId }: Props) {
             <div className="os-header-left">
               <div className="os-logo-dot">🜏</div>
               <div>
-                <div className="mono" style={{ fontWeight: 700, fontSize: "13px", letterSpacing: "1px", color: "#f5f5f7" }}>OP_SYS_COMMAND</div>
+                <div className="mono" style={{ fontWeight: 700, fontSize: "13px", letterSpacing: "1px", color: "#f5f5f7" }}>chatting.aja</div>
                 <div className="mono" style={{ fontSize: "10px", color: "#55555f", letterSpacing: "0.5px" }}>
                   CONNECTED: {nodeId || "NODE_00"}
                 </div>
@@ -119,7 +119,7 @@ export default function MobileShell({ sidebar, children, nodeId }: Props) {
               <span style={{ display: "block", width: "20px", height: "2px", background: "#f5f5f7", borderRadius: "2px" }} />
               <span style={{ display: "block", width: "20px", height: "2px", background: "#f5f5f7", borderRadius: "2px" }} />
             </button>
-            <span className="mono" style={{ fontWeight: 700, fontSize: "13px", letterSpacing: "1px", color: "#f5f5f7" }}>OP_SYS_COMMAND</span>
+            <span className="mono" style={{ fontWeight: 700, fontSize: "13px", letterSpacing: "1px", color: "#f5f5f7" }}>chatting.aja</span>
             <div style={{ width: "32px" }} />
           </div>
 

@@ -48,7 +48,7 @@ export default function RegisterPage() {
       return;
     }
 
-    router.push("/chat");
+    router.push("/home");
     router.refresh();
   };
 

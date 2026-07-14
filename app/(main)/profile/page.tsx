@@ -1,6 +1,6 @@
 "use client";
-import { useState } from "react";
-import { Copy, Check, LogOut, Edit2, Bell, Moon, Globe, ChevronRight } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Copy, Check, LogOut, Edit2, Bell, Moon, Globe, ChevronRight, X } from "lucide-react";
 import Avatar from "@/components/ui/Avatar";
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/lib/hooks/useAuth";
@@ -8,14 +8,39 @@ import { getInitial } from "@/lib/types";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
+const LANGUAGES = [
+  "Indonesia", "English", "Español", "Português", "Français", "Deutsch",
+  "Italiano", "Nederlands", "Русский", "Українська", "Polski", "Svenska",
+  "中文 (简体)", "中文 (繁體)", "日本語", "한국어", "ภาษาไทย", "Tiếng Việt",
+  "Bahasa Melayu", "العربية", "עברית", "فارسی", "हिन्दी", "বাংলা",
+  "Türkçe", "Ελληνικά", "Filipino", "Kiswahili",
+];
+
 export default function ProfilePage() {
   const { profile } = useAuth();
   const [copied, setCopied] = useState(false);
   const [editingUsername, setEditingUsername] = useState(false);
   const [newUsername, setNewUsername] = useState("");
   const [saving, setSaving] = useState(false);
+  const [showLangModal, setShowLangModal] = useState(false);
+  const [language, setLanguage] = useState("Indonesia");
+  const [langSearch, setLangSearch] = useState("");
   const supabase = createClient();
   const router = useRouter();
+
+  useEffect(() => {
+    const saved = localStorage.getItem("chatting-aja-language");
+    if (saved) setLanguage(saved);
+  }, []);
+
+  function selectLanguage(lang: string) {
+    setLanguage(lang);
+    localStorage.setItem("chatting-aja-language", lang);
+    setShowLangModal(false);
+    setLangSearch("");
+  }
+
+  const filteredLanguages = LANGUAGES.filter(l => l.toLowerCase().includes(langSearch.toLowerCase()));
 
   const copyTag = () => {
     if (!profile) return;
@@ -46,9 +71,9 @@ export default function ProfilePage() {
   );
 
   const settingsItems = [
-    { icon: <Bell size={15} />, label: "Notifikasi", value: "Aktif" },
-    { icon: <Moon size={15} />, label: "Tema", value: "Gelap" },
-    { icon: <Globe size={15} />, label: "Bahasa", value: "Indonesia" },
+    { icon: <Bell size={15} />, label: "Notifikasi", value: "Aktif", onClick: undefined },
+    { icon: <Moon size={15} />, label: "Tema", value: "Gelap", onClick: undefined },
+    { icon: <Globe size={15} />, label: "Bahasa", value: language, onClick: () => setShowLangModal(true) },
   ];
 
   return (
@@ -114,12 +139,12 @@ export default function ProfilePage() {
         {/* Settings */}
         <div style={{ background: "#111116", border: "1px solid #2a2a35", borderRadius: "18px", overflow: "hidden", marginBottom: "12px" }}>
           {settingsItems.map((item, i) => (
-            <div key={item.label} style={{
+            <div key={item.label} onClick={item.onClick} style={{
               display: "flex", alignItems: "center", gap: "12px", padding: "14px 18px",
               borderBottom: i < settingsItems.length - 1 ? "1px solid #2a2a35" : "none",
-              cursor: "pointer", transition: "background 0.15s",
+              cursor: item.onClick ? "pointer" : "default", transition: "background 0.15s",
             }}
-              onMouseEnter={e => e.currentTarget.style.background = "#17171f"}
+              onMouseEnter={e => { if (item.onClick) e.currentTarget.style.background = "#17171f"; }}
               onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
               <div style={{ width: "32px", height: "32px", borderRadius: "9px", background: "#17171f", border: "1px solid #2a2a35", display: "flex", alignItems: "center", justifyContent: "center", color: "#7c7c8a" }}>
                 {item.icon}
@@ -138,6 +163,53 @@ export default function ProfilePage() {
           <LogOut size={16} /> Keluar
         </button>
       </div>
+
+      {/* Language picker modal */}
+      {showLangModal && (
+        <div onClick={() => setShowLangModal(false)} style={{
+          position: "fixed", inset: 0, background: "rgba(0,0,0,0.65)", backdropFilter: "blur(2px)",
+          display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100, padding: "20px",
+        }}>
+          <div onClick={e => e.stopPropagation()} style={{
+            background: "#111116", border: "1px solid #2a2a35", borderRadius: "18px",
+            width: "100%", maxWidth: "360px", maxHeight: "70vh", display: "flex", flexDirection: "column", overflow: "hidden",
+          }}>
+            <div style={{ padding: "16px 18px", borderBottom: "1px solid #2a2a35", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <span style={{ fontWeight: 700, fontSize: "15px", color: "#f5f5f7" }}>Pilih Bahasa</span>
+              <button onClick={() => setShowLangModal(false)} style={{ background: "none", border: "none", color: "#7c7c8a", cursor: "pointer", display: "flex" }}>
+                <X size={18} />
+              </button>
+            </div>
+            <div style={{ padding: "10px 14px" }}>
+              <input
+                autoFocus
+                placeholder="Cari bahasa..."
+                value={langSearch}
+                onChange={e => setLangSearch(e.target.value)}
+                style={{ width: "100%", background: "#17171f", border: "1px solid #2a2a35", borderRadius: "10px", padding: "9px 12px", color: "#f5f5f7", fontFamily: "inherit", fontSize: "13px", outline: "none" }}
+              />
+            </div>
+            <div style={{ overflowY: "auto", padding: "4px 8px 10px" }}>
+              {filteredLanguages.map(lang => (
+                <div key={lang} onClick={() => selectLanguage(lang)} style={{
+                  display: "flex", alignItems: "center", justifyContent: "space-between",
+                  padding: "10px 12px", borderRadius: "10px", cursor: "pointer", fontSize: "14px",
+                  color: lang === language ? "#d8b4fe" : "#f5f5f7",
+                  background: lang === language ? "rgba(168,85,247,0.1)" : "transparent",
+                }}
+                  onMouseEnter={e => { if (lang !== language) e.currentTarget.style.background = "#17171f"; }}
+                  onMouseLeave={e => { if (lang !== language) e.currentTarget.style.background = "transparent"; }}>
+                  {lang}
+                  {lang === language && <Check size={14} color="#a855f7" />}
+                </div>
+              ))}
+              {filteredLanguages.length === 0 && (
+                <div style={{ padding: "20px", textAlign: "center", fontSize: "13px", color: "#7c7c8a" }}>Tidak ditemukan</div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

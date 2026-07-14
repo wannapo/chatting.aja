@@ -1,12 +1,12 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Terminal, Share2, Settings } from "lucide-react";
+import { LayoutDashboard, MessageSquare, Settings } from "lucide-react";
 
 const NAV_ITEMS = [
-  { href: "/chat", label: "TERMINAL", icon: Terminal, match: (p: string) => p.startsWith("/chat") },
-  { href: "/find", label: "NODES", icon: Share2, match: (p: string) => p.startsWith("/find") },
-  { href: "/profile", label: "SYSTEM", icon: Settings, match: (p: string) => p.startsWith("/profile") },
+  { href: "/home", label: "BERANDA", icon: LayoutDashboard, match: (p: string) => p.startsWith("/home") },
+  { href: "/chat", label: "CHAT", icon: MessageSquare, match: (p: string) => p.startsWith("/chat") || p.startsWith("/find") },
+  { href: "/profile", label: "PENGATURAN", icon: Settings, match: (p: string) => p.startsWith("/profile") },
 ];
 
 export default function IconNav({ onNavigate }: { onNavigate?: () => void }) {

@@ -25,9 +25,23 @@ export function useConversations(userId: string) {
     if (!userId) return
     loadConversations()
 
+    // Debug: pastikan sesi login yang aktif memang cocok dengan userId yang dipakai
+    supabase.auth.getSession().then(({ data, error }) => {
+      if (error) console.error('[useConversations] getSession error:', error)
+      const sessionUserId = data?.session?.user?.id
+      if (sessionUserId !== userId) {
+        console.warn('[useConversations] SESI TIDAK COCOK! session.user.id =', sessionUserId, ' vs userId prop =', userId)
+      } else {
+        console.log('[useConversations] Sesi cocok, user aktif:', sessionUserId)
+      }
+    })
+
     // Realtime: refresh when new message arrives
+    // Nama channel dibikin unik per instance, soalnya hook ini bisa dipakai
+    // di beberapa komponen sekaligus (Sidebar + halaman Beranda, dll)
+    const uniqueSuffix = Math.random().toString(36).slice(2)
     const channel = supabase
-      .channel('conversations-updates')
+      .channel(`conversations-updates-${userId}-${uniqueSuffix}`)
       .on('postgres_changes', {
         event: 'INSERT',
         schema: 'public',
@@ -45,30 +59,36 @@ export function useConversations(userId: string) {
 
   async function loadConversations() {
     // Get all conversations where user is member
-    const { data: memberRows } = await supabase
+    const { data: memberRows, error: memberErr } = await supabase
       .from('conversation_members')
       .select('conversation_id')
       .eq('user_id', userId)
+
+    if (memberErr) console.error('[useConversations] memberRows error:', memberErr)
 
     if (!memberRows?.length) { setConversations([]); setLoading(false); return }
 
     const convIds = memberRows.map(r => r.conversation_id)
 
     // Get the other member's user_id per conversation
-    const { data: otherMembers } = await supabase
+    const { data: otherMembers, error: otherErr } = await supabase
       .from('conversation_members')
       .select('conversation_id, user_id')
       .in('conversation_id', convIds)
       .neq('user_id', userId)
 
+    if (otherErr) console.error('[useConversations] otherMembers error:', otherErr)
+
     if (!otherMembers?.length) { setConversations([]); setLoading(false); return }
 
     // Get all contact profiles in one query
     const contactIds = [...new Set(otherMembers.map(m => m.user_id))]
-    const { data: profiles } = await supabase
+    const { data: profiles, error: profilesErr } = await supabase
       .from('profiles')
       .select('id, username, unique_tag, avatar_color, last_seen')
       .in('id', contactIds)
+
+    if (profilesErr) console.error('[useConversations] profiles error:', profilesErr)
 
     const profileMap = Object.fromEntries((profiles || []).map(p => [p.id, p]))
 

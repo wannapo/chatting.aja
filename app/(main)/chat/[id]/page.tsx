@@ -12,6 +12,8 @@ export default function ChatRoomPage({ params }: { params: Promise<{ id: string 
   const { id } = use(params);
   const [currentUser, setCurrentUser] = useState<Profile | null>(null);
   const [contact, setContact] = useState<Profile | null>(null);
+  const [loadingContact, setLoadingContact] = useState(true);
+  const [notFound, setNotFound] = useState(false);
   const [input, setInput] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
@@ -24,19 +26,30 @@ export default function ChatRoomPage({ params }: { params: Promise<{ id: string 
   // -------------------
 
   useEffect(() => {
+    let cancelled = false;
     async function loadUsers() {
+      setLoadingContact(true);
+      setNotFound(false);
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) { if (!cancelled) setLoadingContact(false); return; }
       const { data: myProfile } = await supabase.from("profiles").select("*").eq("id", user.id).single();
+      if (cancelled) return;
       setCurrentUser(myProfile);
-      const { data: members } = await supabase
+      const { data: members, error: membersError } = await supabase
         .from("conversation_members").select("user_id").eq("conversation_id", id).neq("user_id", user.id).limit(1);
-      if (members && members.length > 0) {
-        const { data: contactProfile } = await supabase.from("profiles").select("*").eq("id", members[0].user_id).single();
-        if (contactProfile) setContact(contactProfile);
+      if (cancelled) return;
+      if (membersError || !members || members.length === 0) {
+        setNotFound(true);
+        setLoadingContact(false);
+        return;
       }
+      const { data: contactProfile } = await supabase.from("profiles").select("*").eq("id", members[0].user_id).single();
+      if (cancelled) return;
+      if (contactProfile) setContact(contactProfile); else setNotFound(true);
+      setLoadingContact(false);
     }
     loadUsers();
+    return () => { cancelled = true; };
   }, [id, supabase]);
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
@@ -53,9 +66,15 @@ export default function ChatRoomPage({ params }: { params: Promise<{ id: string 
     setShowEmojiPicker(false);
   };
 
-  if (!contact || !currentUser) return (
+  if (loadingContact || !currentUser) return (
     <div style={{ height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: "#7c7c8a", fontFamily: "inherit" }}>
-      {loading ? "Memuat..." : "Percakapan tidak ditemukan."}
+      Memuat...
+    </div>
+  );
+
+  if (!contact || notFound) return (
+    <div style={{ height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: "#7c7c8a", fontFamily: "inherit" }}>
+      Percakapan tidak ditemukan.
     </div>
   );
 

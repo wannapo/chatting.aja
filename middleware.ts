@@ -24,17 +24,17 @@ export async function middleware(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   const { pathname } = request.nextUrl
 
-  // Kalau belum login dan akses halaman chat/find/profile → redirect ke login
-  const protectedRoutes = ['/chat', '/find', '/profile']
+  // Kalau belum login dan akses halaman home/chat/find/profile → redirect ke login
+  const protectedRoutes = ['/home', '/chat', '/find', '/profile']
   const isProtected = protectedRoutes.some(r => pathname.startsWith(r))
 
   if (isProtected && !user) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  // Kalau sudah login dan akses login/register → redirect ke chat
+  // Kalau sudah login dan akses login/register → redirect ke beranda
   if ((pathname === '/login' || pathname === '/register') && user) {
-    return NextResponse.redirect(new URL('/chat', request.url))
+    return NextResponse.redirect(new URL('/home', request.url))
   }
 
   return supabaseResponse
