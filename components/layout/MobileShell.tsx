@@ -29,7 +29,7 @@ export default function MobileShell({ sidebar, children, nodeId }: Props) {
       <style>{`
         html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; }
         .os-outer {
-          height: 100vh; width: 100vw; background: #0a0a10;
+          height: 100vh; height: 100dvh; width: 100vw; background: #0a0a10;
           padding: 14px; box-sizing: border-box; display: flex;
           position: relative; overflow: hidden;
         }
