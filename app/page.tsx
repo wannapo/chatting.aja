@@ -7,7 +7,7 @@ export default function LandingPage() {
         .root-wrap {
           min-height: 100vh;
           width: 100%;
-          background: #0a0a10;
+          background: var(--bg);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -28,8 +28,8 @@ export default function LandingPage() {
         }
         .root-glow {
           position: absolute; inset: 0; pointer-events: none;
-          background: radial-gradient(ellipse at 30% 20%, rgba(168,85,247,0.25), transparent 55%),
-                      radial-gradient(ellipse at 75% 60%, rgba(217,70,239,0.18), transparent 55%);
+          background: radial-gradient(ellipse at 30% 20%, color-mix(in srgb, var(--accent) 25%, transparent), transparent 55%),
+                      radial-gradient(ellipse at 75% 60%, color-mix(in srgb, var(--accent2) 18%, transparent), transparent 55%);
         }
         .root-badge {
           display: inline-flex;
@@ -37,22 +37,22 @@ export default function LandingPage() {
           gap: 8px;
           padding: 6px 14px;
           border-radius: 999px;
-          border: 1px solid #2a2a35;
-          background: #111116;
-          color: #7c7c8a;
+          border: 1px solid var(--border);
+          background: var(--surface);
+          color: var(--muted);
           font-size: 13px;
           font-weight: 500;
           margin-bottom: 28px;
         }
         .root-dot {
           width: 6px; height: 6px; border-radius: 999px;
-          background: #22c55e;
-          box-shadow: 0 0 8px #22c55e;
+          background: var(--green);
+          box-shadow: 0 0 8px var(--green);
         }
         .root-title {
           font-weight: 800;
           font-size: clamp(36px, 10vw, 88px);
-          background: linear-gradient(135deg,#ffffff 30%,#d8b4fe 100%);
+          background: var(--brand-gradient);
           -webkit-background-clip: text;
           background-clip: text;
           color: transparent;
@@ -64,7 +64,7 @@ export default function LandingPage() {
         }
         .root-sub {
           font-size: clamp(14px, 4vw, 18px);
-          color: #7c7c8a;
+          color: var(--muted);
           font-weight: 400;
           margin-bottom: 44px;
           max-width: 360px;
@@ -79,16 +79,16 @@ export default function LandingPage() {
           gap: 8px;
           padding: clamp(12px, 3vw, 15px) clamp(26px, 8vw, 44px);
           border-radius: 12px;
-          background: linear-gradient(135deg,#a855f7,#d946ef);
+          background: var(--bubble-mine);
           color: white;
           font-weight: 600;
           font-size: clamp(14px, 4vw, 16px);
           text-decoration: none;
-          box-shadow: 0 4px 24px rgba(168,85,247,0.35);
+          box-shadow: 0 4px 24px color-mix(in srgb, var(--accent) 35%, transparent);
           transition: transform 0.15s ease, box-shadow 0.15s ease;
           white-space: nowrap;
         }
-        .root-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(168,85,247,0.5); }
+        .root-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 32px color-mix(in srgb, var(--accent) 50%, transparent); }
       `}</style>
       <div className="root-wrap">
         <div className="root-grid" />

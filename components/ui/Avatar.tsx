@@ -19,8 +19,8 @@ export default function Avatar({ letter, colorClass, size = "md", online }: Avat
       </div>
       {online !== undefined && (
         <span
-          className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-[#111116] ${
-            online ? "bg-[#22c55e]" : "bg-[#3a3a3a]"
+          className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-[var(--surface)] ${
+            online ? "bg-[var(--green)]" : "bg-[var(--muted)]"
           }`}
         />
       )}

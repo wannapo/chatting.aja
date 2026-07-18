@@ -7,9 +7,12 @@ import { createClient } from "@/lib/supabase/client";
 import { isOnline, formatLastSeen, getInitial } from "@/lib/types";
 import type { Profile } from "@/lib/types";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "@/lib/i18n";
 
 export default function ChatRoomPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
+  const { t } = useTranslation();
+
   const [currentUser, setCurrentUser] = useState<Profile | null>(null);
   const [contact, setContact] = useState<Profile | null>(null);
   const [loadingContact, setLoadingContact] = useState(true);
@@ -67,14 +70,14 @@ export default function ChatRoomPage({ params }: { params: Promise<{ id: string 
   };
 
   if (loadingContact || !currentUser) return (
-    <div style={{ height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: "#7c7c8a", fontFamily: "inherit" }}>
-      Memuat...
+    <div style={{ height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--muted)", fontFamily: "inherit" }}>
+      {t("loading")}
     </div>
   );
 
   if (!contact || notFound) return (
-    <div style={{ height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: "#7c7c8a", fontFamily: "inherit" }}>
-      Percakapan tidak ditemukan.
+    <div style={{ height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--muted)", fontFamily: "inherit" }}>
+      {t("not_found")}
     </div>
   );
 
@@ -97,16 +100,16 @@ export default function ChatRoomPage({ params }: { params: Promise<{ id: string 
           display: flex;
           flex-direction: column;
           gap: 4px;
-          background: #0a0a10;
+          background: var(--bg);
           min-height: 0;
         }
         .chat-input-area {
           padding: 10px 14px;
-          border-top: 1px solid #2a2a35;
+          border-top: 1px solid var(--border);
           display: flex;
           align-items: center;
           gap: 8px;
-          background: #111116;
+          background: var(--surface);
           flex-shrink: 0;
           position: relative; /* Diperlukan untuk penempatan pemilih emoji */
         }
@@ -124,34 +127,34 @@ export default function ChatRoomPage({ params }: { params: Promise<{ id: string 
 
       <div className="chat-room">
         {/* Header - Berubah untuk menampilkan pencarian */}
-        <div style={{ padding: "12px 16px", borderBottom: "1px solid #2a2a35", display: "flex", alignItems: "center", gap: "10px", flexShrink: 0, background: "#111116" }}>
+        <div style={{ padding: "12px 16px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", gap: "10px", flexShrink: 0, background: "var(--surface)" }}>
           {isSearching ? (
             <>
               <button
                 onClick={() => setIsSearching(false)} // Tutup mode pencarian
-                style={{ background: "none", border: "none", color: "#7c7c8a", cursor: "pointer", padding: "4px" }}
+                style={{ background: "none", border: "none", color: "var(--muted)", cursor: "pointer", padding: "4px" }}
               >
                 <ArrowLeft size={18} />
               </button>
               <input
                 type="text"
-                placeholder="Cari dalam percakapan..."
-                style={{ flex: 1, background: "#0a0a10", border: "1px solid #2a2a35", borderRadius: "8px", padding: "6px 10px", color: "#f5f5f7", fontSize: "14px", outline: "none" }}
+                placeholder={t("search_in_chat_placeholder")}
+                style={{ flex: 1, background: "var(--bg)", border: "1px solid var(--border)", borderRadius: "8px", padding: "6px 10px", color: "var(--text)", fontSize: "14px", outline: "none" }}
               />
             </>
           ) : (
             <>
               <button className="back-btn" onClick={() => router.push("/chat")}
-                style={{ background: "none", border: "none", color: "#7c7c8a", cursor: "pointer", padding: "4px", display: "none", alignItems: "center" }}>
+                style={{ background: "none", border: "none", color: "var(--muted)", cursor: "pointer", padding: "4px", display: "none", alignItems: "center" }}>
                 <ArrowLeft size={18} />
               </button>
               <Avatar letter={getInitial(contact.username)} colorClass={contact.avatar_color} size="md" online={online} />
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div className="chat-header-title" style={{ fontFamily: "inherit", fontWeight: 700, fontSize: "15px", color: "#f5f5f7", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{contact.username}</div>
-                <div className="chat-header-status mono" style={{ fontSize: "10px", letterSpacing: "0.5px", display: "flex", alignItems: "center", gap: "5px", marginTop: "3px" }}>
+                <div className="chat-header-title" style={{ fontFamily: "inherit", fontWeight: 700, fontSize: "15px", color: "var(--text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{contact.username}</div>
+                <div className="chat-header-status" style={{ fontSize: "10px", display: "flex", alignItems: "center", gap: "5px", marginTop: "3px" }}>
                   {online
-                    ? <><span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#22c55e", display: "inline-block" }} /><span style={{ color: "#7c7c8a" }}>NODE_STATUS: <span style={{ color: "#22c55e" }}>CONNECTED</span></span></>
-                    : <span style={{ color: "#7c7c8a" }}>NODE_STATUS: <span style={{ color: "#55555f" }}>IDLE — {formatLastSeen(contact.last_seen)}</span></span>}
+                    ? <><span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "var(--green)", display: "inline-block" }} /><span style={{ color: "var(--green)", fontSize: "11px" }}>{t("status_online")}</span></>
+                    : <span style={{ color: "var(--muted)", fontSize: "11px" }}>{t("status_active_prefix")} {formatLastSeen(contact.last_seen)}</span>}
                 </div>
               </div>
               {/* Tombol Search yang fungsional di header */}
@@ -162,12 +165,12 @@ export default function ChatRoomPage({ params }: { params: Promise<{ id: string 
                   width: "34px",
                   height: "34px",
                   borderRadius: "10px",
-                  background: "#17171f",
-                  border: "1px solid #2a2a35",
+                  background: "var(--surface2)",
+                  border: "1px solid var(--border)",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  color: "#7c7c8a",
+                  color: "var(--muted)",
                   cursor: "pointer",
                 }}
               >
@@ -181,19 +184,19 @@ export default function ChatRoomPage({ params }: { params: Promise<{ id: string 
         {/* Area Pesan (Tidak berubah) */}
         <div className="chat-messages">
           <div style={{ display: "flex", alignItems: "center", gap: "12px", margin: "4px 0 14px" }}>
-            <div style={{ flex: 1, height: "1px", background: "#2a2a35" }} />
-            <span style={{ fontSize: "11px", color: "#7c7c8a", padding: "3px 10px", background: "#111116", borderRadius: "20px", border: "1px solid #2a2a35", whiteSpace: "nowrap" }}>
+            <div style={{ flex: 1, height: "1px", background: "var(--border)" }} />
+            <span style={{ fontSize: "11px", color: "var(--muted)", padding: "3px 10px", background: "var(--surface)", borderRadius: "20px", border: "1px solid var(--border)", whiteSpace: "nowrap" }}>
               {new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long" })}
             </span>
-            <div style={{ flex: 1, height: "1px", background: "#2a2a35" }} />
+            <div style={{ flex: 1, height: "1px", background: "var(--border)" }} />
           </div>
 
           {loading ? (
-            <div style={{ textAlign: "center", color: "#7c7c8a", fontSize: "13px", marginTop: "20px" }}>Memuat pesan...</div>
+            <div style={{ textAlign: "center", color: "var(--muted)", fontSize: "13px", marginTop: "20px" }}>{t("loading")}</div>
           ) : messages.length === 0 ? (
             <div style={{ textAlign: "center", marginTop: "40px" }}>
               <div style={{ fontSize: "32px", marginBottom: "12px" }}>👋</div>
-              <div style={{ fontSize: "14px", color: "#7c7c8a" }}>Mulai percakapan dengan <strong style={{ color: "#f5f5f7" }}>{contact.username}</strong></div>
+              <div style={{ fontSize: "14px", color: "var(--muted)" }}>{t("start_chat_with")} <strong style={{ color: "var(--text)" }}>{contact.username}</strong></div>
             </div>
           ) : messages.map((msg, i) => {
             const isMine = msg.sender_id === currentUser.id;
@@ -207,15 +210,15 @@ export default function ChatRoomPage({ params }: { params: Promise<{ id: string 
                   </div>
                 )}
                 <div style={{ display: "flex", flexDirection: "column", gap: "3px", maxWidth: "72%", alignItems: isMine ? "flex-end" : "flex-start" }}>
-                  <div style={{ padding: "9px 13px", borderRadius: isMine ? "18px 18px 4px 18px" : "18px 18px 18px 4px", fontSize: "14px", lineHeight: "1.55", wordBreak: "break-word", background: isMine ? "linear-gradient(135deg,#a855f7,#d946ef)" : "#17171f", border: isMine ? "1px solid rgba(168,85,247,0.4)" : "1px solid #2a2a35", color: isMine ? "#eceaff" : "#f5f5f7" }}>
+                  <div style={{ padding: "9px 13px", borderRadius: isMine ? "18px 18px 4px 18px" : "18px 18px 18px 4px", fontSize: "14px", lineHeight: "1.55", wordBreak: "break-word", background: isMine ? "var(--bubble-mine)" : "var(--bubble-other)", border: isMine ? "1px solid transparent" : "1px solid var(--border)", color: isMine ? "var(--bubble-mine-text)" : "var(--bubble-other-text)" }}>
                     {msg.content}
                   </div>
                   {!nextSame && (
-                    <div className="mono" style={{ display: "flex", alignItems: "center", gap: "5px", padding: "0 4px" }}>
-                      <span style={{ fontSize: "10px", color: "#55555f", letterSpacing: "0.3px" }}>
-                        {new Date(msg.created_at).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", second: "2-digit" })} // {isMine ? "OUTBOUND" : "INBOUND"}
+                    <div style={{ display: "flex", alignItems: "center", gap: "5px", padding: "0 4px" }}>
+                      <span style={{ fontSize: "10px", color: "var(--muted)" }}>
+                        {new Date(msg.created_at).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })}
                       </span>
-                      {isMine && <span style={{ fontSize: "11px", color: msg.is_read ? "#ec4899" : "#55555f" }}>✓✓</span>}
+                      {isMine && <span style={{ fontSize: "11px", color: msg.is_read ? "var(--pink)" : "var(--muted)" }}>✓✓</span>}
                     </div>
                   )}
                 </div>
@@ -233,15 +236,15 @@ export default function ChatRoomPage({ params }: { params: Promise<{ id: string 
               position: "absolute",
               bottom: "100%", // Tampilkan di atas area input
               left: "14px", // Sejajar tombol emoji
-              background: "#17171f",
-              border: "1px solid #2a2a35",
+              background: "var(--surface2)",
+              border: "1px solid var(--border)",
               borderRadius: "12px",
               padding: "10px",
               display: "flex",
               gap: "8px",
               fontSize: "20px",
               zIndex: 10,
-              boxShadow: "0 -4px 10px rgba(0,0,0,0.3)"
+              boxShadow: "0 -4px 10px rgba(0,0,0,0.15)"
             }}>
               {["😀", "😂", "🥰", "👍", "🔥", "🙏", "👀"].map(emoji => (
                 <span
@@ -257,21 +260,21 @@ export default function ChatRoomPage({ params }: { params: Promise<{ id: string 
           {/* Tombol Emoji dengan handler klik */}
           <button
             onClick={() => setShowEmojiPicker(!showEmojiPicker)} // Buka/tutup pemilih emoji
-            style={{ background: "none", border: "none", color: "#7c7c8a", cursor: "pointer", padding: "4px", display: "flex", flexShrink: 0 }}
+            style={{ background: "none", border: "none", color: "var(--muted)", cursor: "pointer", padding: "4px", display: "flex", flexShrink: 0 }}
           >
             <Smile size={18} />
           </button>
-          <div style={{ flex: 1, display: "flex", alignItems: "center", background: "#17171f", border: "1px solid #2a2a35", borderRadius: "14px", padding: "9px 12px", minWidth: 0 }}>
+          <div style={{ flex: 1, display: "flex", alignItems: "center", background: "var(--surface2)", border: "1px solid var(--border)", borderRadius: "14px", padding: "9px 12px", minWidth: 0 }}>
             <input
-              style={{ flex: 1, background: "none", border: "none", outline: "none", color: "#f5f5f7", fontSize: "14px", fontFamily: "inherit", minWidth: 0 }}
-              placeholder="Transmit packet..."
+              style={{ flex: 1, background: "none", border: "none", outline: "none", color: "var(--text)", fontSize: "14px", fontFamily: "inherit", minWidth: 0 }}
+              placeholder={t("msg_input_placeholder")}
               value={input}
               onChange={e => setInput(e.target.value)}
               onKeyDown={e => e.key === "Enter" && !e.shiftKey && handleSend()}
             />
           </div>
           <button onClick={handleSend}
-            style={{ width: "40px", height: "40px", borderRadius: "12px", background: "linear-gradient(135deg,#a855f7,#d946ef)", border: "none", display: "flex", alignItems: "center", justifyContent: "center", color: "white", cursor: "pointer", flexShrink: 0, boxShadow: "0 4px 14px rgba(168,85,247,0.4)" }}>
+            style={{ width: "40px", height: "40px", borderRadius: "12px", background: "var(--bubble-mine)", border: "none", display: "flex", alignItems: "center", justifyContent: "center", color: "white", cursor: "pointer", flexShrink: 0, boxShadow: "0 4px 14px rgba(37,99,235,0.3)" }}>
             <Send size={15} />
           </button>
         </div>

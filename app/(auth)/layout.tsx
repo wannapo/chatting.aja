@@ -9,7 +9,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           display: flex;
           align-items: center;
           justify-content: center;
-          background: #0a0a10;
+          background: var(--bg);
           padding: 24px 16px;
           position: relative;
           overflow: hidden;
@@ -27,16 +27,16 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           inset: 0;
           pointer-events: none;
           background:
-            radial-gradient(ellipse at 25% 30%, rgba(168,85,247,0.22), transparent 55%),
-            radial-gradient(ellipse at 75% 60%, rgba(217,70,239,0.16), transparent 55%);
+            radial-gradient(ellipse at 25% 30%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 55%),
+            radial-gradient(ellipse at 75% 60%, color-mix(in srgb, var(--accent2) 16%, transparent), transparent 55%);
         }
         .auth-card {
           position: relative;
           z-index: 1;
           width: 100%;
           max-width: 420px;
-          background: #111116;
-          border: 1px solid #2a2a35;
+          background: var(--surface);
+          border: 1px solid var(--border);
           border-radius: 20px;
           padding: 36px 32px;
         }

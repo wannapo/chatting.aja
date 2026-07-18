@@ -2,15 +2,17 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LayoutDashboard, MessageSquare, Settings } from "lucide-react";
-
-const NAV_ITEMS = [
-  { href: "/home", label: "BERANDA", icon: LayoutDashboard, match: (p: string) => p.startsWith("/home") },
-  { href: "/chat", label: "CHAT", icon: MessageSquare, match: (p: string) => p.startsWith("/chat") || p.startsWith("/find") },
-  { href: "/profile", label: "PENGATURAN", icon: Settings, match: (p: string) => p.startsWith("/profile") },
-];
+import { useTranslation } from "@/lib/i18n";
 
 export default function IconNav({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
+  const { t } = useTranslation();
+
+  const NAV_ITEMS = [
+    { href: "/home", label: t("nav_home"), icon: LayoutDashboard, match: (p: string) => p.startsWith("/home") },
+    { href: "/chat", label: t("nav_chat"), icon: MessageSquare, match: (p: string) => p.startsWith("/chat") || p.startsWith("/find") },
+    { href: "/profile", label: t("nav_settings"), icon: Settings, match: (p: string) => p.startsWith("/profile") },
+  ];
 
   return (
     <nav className="icon-nav">
@@ -20,7 +22,7 @@ export default function IconNav({ onNavigate }: { onNavigate?: () => void }) {
         return (
           <Link key={item.href} href={item.href} onClick={onNavigate} className={`icon-nav-item${active ? " active" : ""}`}>
             <Icon size={17} strokeWidth={2} />
-            <span className="mono icon-nav-label">{item.label}</span>
+            <span className="icon-nav-label">{item.label}</span>
           </Link>
         );
       })}
@@ -40,19 +42,18 @@ export default function IconNav({ onNavigate }: { onNavigate?: () => void }) {
           padding: 10px 10px;
           border-radius: 10px;
           text-decoration: none;
-          color: #7c7c8a;
+          color: var(--muted);
           transition: all 0.15s ease;
         }
-        .icon-nav-item:hover { background: #17171f; color: #d8b4fe; }
+        .icon-nav-item:hover { background: var(--surface2); color: var(--accent); }
         .icon-nav-item.active {
-          background: rgba(168,85,247,0.1);
-          border: 1px solid rgba(168,85,247,0.35);
-          color: #d8b4fe;
+          background: color-mix(in srgb, var(--accent) 10%, transparent);
+          border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+          color: var(--accent);
         }
         .icon-nav-label {
           font-size: 11px;
           font-weight: 600;
-          letter-spacing: 0.5px;
         }
         @media (max-width: 768px) {
           .icon-nav { flex-direction: row; padding: 8px; gap: 2px; }
