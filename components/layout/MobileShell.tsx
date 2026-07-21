@@ -4,6 +4,7 @@ import { Power, Sun, Moon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useTheme } from "@/lib/theme";
+import { removeFcmTokenOnLogout } from "@/lib/hooks/useFcmToken";
 import IconNav from "./IconNav";
 
 interface Props {
@@ -21,6 +22,7 @@ export default function MobileShell({ sidebar, children, nodeId }: Props) {
   const close = () => setSidebarOpen(false);
 
   async function handlePowerOff() {
+    await removeFcmTokenOnLogout(); // hapus token FCM dulu SEBELUM signOut
     const supabase = createClient();
     await supabase.auth.signOut();
     router.push("/login");

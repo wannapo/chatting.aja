@@ -7,6 +7,7 @@ import { useAuth } from "@/lib/hooks/useAuth";
 import { useTheme } from "@/lib/theme";
 import { useTranslation, LANGUAGES } from "@/lib/i18n";
 import { getInitial } from "@/lib/types";
+import { removeFcmTokenOnLogout } from "@/lib/hooks/useFcmToken";
 import { useRouter } from "next/navigation";
 
 export default function ProfilePage() {
@@ -40,6 +41,7 @@ export default function ProfilePage() {
   };
 
   const handleLogout = async () => {
+    await removeFcmTokenOnLogout(); // hapus token FCM dulu SEBELUM signOut
     await supabase.auth.signOut();
     router.push("/login");
     router.refresh();
